@@ -16,9 +16,12 @@ namespace TentaWeb
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+      
+        private IHostingEnvironment _environment;
+        public Startup(IConfiguration configuration, IHostingEnvironment environment)
         {
             Configuration = configuration;
+            _environment = environment;
         }
 
         public IConfiguration Configuration { get; }
@@ -32,11 +35,20 @@ namespace TentaWeb
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+            
+            
+                if (_environment.IsProduction() || _environment.IsStaging())
+                    services.AddDbContext<ApplicationDbContext>(options =>
+                        options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                else
+                    services.AddDbContext<ApplicationDbContext>(options =>
+                        options.UseInMemoryDatabase("DefaultConnection"));
 
-            // Add application services.
-            services.AddTransient<IEmailSender, EmailSender>();
+                // Add application services.
+                services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddMvc();
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -63,6 +75,10 @@ namespace TentaWeb
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+            if (_environment.IsProduction() || _environment.IsStaging())
+                context.Database.Migrate();
+
+            DbInitializer.Initialize(context);
         }
     }
 }
