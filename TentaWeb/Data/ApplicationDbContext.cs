@@ -23,6 +23,6 @@ namespace TentaWeb.Data
             // Add your customizations after calling base.OnModelCreating(builder);
         }
 
-        public DbSet<Student> Student { get; set; } ////testar igen då
+        public DbSet<Student> Student { get; set; } ////testar igen då!!
     }
 }
